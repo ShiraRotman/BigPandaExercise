@@ -55,6 +55,7 @@ public class ServiceHandler
 				generatorData=new StringBuilder(100); genBuffer=new char[BUFFER_SIZE];
 			}	
 			Pattern genLinePattern=null;
+			StatsKeeper statsKeeper=new StatsKeeper();
 			
 			while (true)
 			{
@@ -96,9 +97,8 @@ public class ServiceHandler
 							Matcher matcher=genLinePattern.matcher(generatorData); int endIndex=0;
 							while (matcher.find())
 							{
-								//System.out.println(matcher.group());
-								/*statsKeeper.incrementEventFrequency(matcher.group("event"));
-								statsKeeper.incrementWordFrequency(matcher.group("word"));*/
+								statsKeeper.incrementEventFrequency(matcher.group("event"));
+								statsKeeper.incrementWordFrequency(matcher.group("word"));
 								endIndex=matcher.end();								
 							}
 							generatorData.delete(0,endIndex);
@@ -122,20 +122,17 @@ public class ServiceHandler
 								socketChannel=serverChannel.accept();
 								if (socketChannel!=null)
 								{
-									System.out.println("Got one!");
 									socketChannel.configureBlocking(false);
-									SocketHandler socketHandler=new SocketHandler();
+									SocketHandler socketHandler=new SocketHandler(statsKeeper);
 									socketChannel.register(selector,SelectionKey.OP_READ | SelectionKey.OP_WRITE,socketHandler);
 								}
-								else System.out.println("Blahhhh...");
 							}
-							catch (IOException ioe) { System.out.println("Can't accept!"); }
+							catch (IOException ioe) { }
 						}
 						else
 						{
 							SocketChannel socketChannel=(SocketChannel)(channelKey.channel());
 							SocketHandler socketHandler=(SocketHandler)(channelKey.attachment());
-							System.out.println("Handling one!");
 							if ((channelKey.isReadable())&&(!socketHandler.finished()))
 							{
 								requestBuffer.clear(); int numRead=0;
