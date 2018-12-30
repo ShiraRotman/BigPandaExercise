@@ -33,8 +33,8 @@ public class ServiceHandler
 		Selector selector=null; InputStreamReader generatorStream=null;
 		try (ServerSocketChannel serverChannel=ServerSocketChannel.open())
 		{
-			serverChannel.configureBlocking(false);
 			serverChannel.bind(new InetSocketAddress("127.0.0.1",port));
+			serverChannel.configureBlocking(false);
 			selector=Selector.open();
 			serverChannel.register(selector,SelectionKey.OP_ACCEPT);
 			Charset converter=Charset.forName("US-ASCII");
@@ -96,7 +96,7 @@ public class ServiceHandler
 							Matcher matcher=genLinePattern.matcher(generatorData); int endIndex=0;
 							while (matcher.find())
 							{
-								System.out.println(matcher.group());
+								//System.out.println(matcher.group());
 								/*statsKeeper.incrementEventFrequency(matcher.group("event"));
 								statsKeeper.incrementWordFrequency(matcher.group("word"));*/
 								endIndex=matcher.end();								
@@ -122,12 +122,14 @@ public class ServiceHandler
 								socketChannel=serverChannel.accept();
 								if (socketChannel!=null)
 								{
+									System.out.println("Got one!");
 									socketChannel.configureBlocking(false);
 									SocketHandler socketHandler=new SocketHandler();
 									socketChannel.register(selector,SelectionKey.OP_READ | SelectionKey.OP_WRITE,socketHandler);
 								}
+								else System.out.println("Blahhhh...");
 							}
-							catch (IOException ioe) { }
+							catch (IOException ioe) { System.out.println("Can't accept!"); }
 						}
 						else
 						{
@@ -162,26 +164,28 @@ public class ServiceHandler
 									catch (IOException ioe) { }
 									String lineSeparator="\r\n";
 									StringBuilder responseBuilder=new StringBuilder(100);
-									/*HandleResult result=socketHandler.getHandleResult();
-									if (result.status==HandleResult.FAILED)
+									String content=socketHandler.getResult();
+									if (content.equals(""))
 									{
 										responseBuilder.append("400 Bad Request");
+										responseBuilder.append(lineSeparator);
+										responseBuilder.append("Connection: close");
 										responseBuilder.append(lineSeparator);
 									}
 									else //Succeeded
 									{
 										responseBuilder.append("200 OK");
 										responseBuilder.append(lineSeparator);
+										responseBuilder.append("Connection: close");
+										responseBuilder.append(lineSeparator);
 										responseBuilder.append("Content-Type: text/plain");
 										responseBuilder.append(lineSeparator);
 										responseBuilder.append("Content-Length: ");
-										responseBuilder.append(result.content.length());
+										responseBuilder.append(content.length());
 										responseBuilder.append(lineSeparator);
 										responseBuilder.append(lineSeparator);
-										responseBuilder.append(result.content);
-									}*/
-									responseBuilder.append("400 Bad Request");
-									responseBuilder.append(lineSeparator);
+										responseBuilder.append(content);
+									}
 									responseData=converter.encode(responseBuilder.toString()).asReadOnlyBuffer();
 									socketHandler.setResponseData(responseData);
 								}
@@ -203,6 +207,7 @@ public class ServiceHandler
 						} //end else (if isAcceptable...)
 					} //end for
 				} //end if numSelected...
+				selector.selectedKeys().clear();
 			} //end while
 		} //end try
 		catch (IOException ioe)
