@@ -4,17 +4,17 @@ After pulling the repository, compile the code by the command:
 javac ServiceHandler.java
 
 Then you can run the service by using:
-java ServiceHandler <port-number>
+java ServiceHandler [port-number]
 
 If you don't specify a port number, it will be allocated by the OS.
 (You will see a message with the port the service is listening to)
 Then you can use a browser or any other HTTP client to connect to the service and ask for stats.
 
 To get the count for an event type:
-localhost:<port>/event/<event-type>
+localhost:{port}/event/{event-type}
 
 To get the count for a data word:
-localhost:<port>/word/<word>
+localhost:{port}/word/{word}
 
 Possible improvements:
 ----------------------
